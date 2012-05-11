@@ -19,7 +19,7 @@ public class BanCommand implements BODCommand {
             return;
         }
         final String playerToLookup = args[0];
-        plugin.playersConfig.set(playerToLookup.toLowerCase() + ".lastbantime", System.currentTimeMillis());
+        plugin.players.set(playerToLookup.toLowerCase() + ".lastbantime", System.currentTimeMillis());
         final OfflinePlayer oplayer = plugin.getServer().getOfflinePlayer(playerToLookup);
         if (oplayer.isOnline()) {
             final Player player = oplayer.getPlayer();

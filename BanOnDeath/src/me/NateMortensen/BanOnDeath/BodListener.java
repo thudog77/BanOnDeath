@@ -42,10 +42,10 @@ public class BodListener implements Listener {
                 return;
             }
             final String playerLivesPath = player.getName().toLowerCase() + ".lives";
-            final int playerLives = plugin.playersConfig.getInt(playerLivesPath);
+            final int playerLives = plugin.players.getInt(playerLivesPath);
             //Lives check
             if (playerLives > 0) {
-                plugin.playersConfig.set(playerLivesPath, playerLives - 1);
+                plugin.players.set(playerLivesPath, playerLives - 1);
                 player.sendMessage("You have " + playerLives + " lives remaining.");
                 return;
             }
@@ -55,7 +55,7 @@ public class BodListener implements Listener {
                 playersPendingList.add(player.getName());
                 return;
             } else if (!plugin.getConfig().getBoolean("Run Command Instead")) {
-                plugin.playersConfig.set(player.getName().toLowerCase() + ".lastbantime", now);
+                plugin.players.set(player.getName().toLowerCase() + ".lastbantime", now);
                 player.getInventory().clear();
                 player.kickPlayer(plugin.config.getString("Kick Message"));
             }
@@ -110,19 +110,20 @@ public class BodListener implements Listener {
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent event) {
         if (plugin.isBanned(event.getPlayer())) {
-            Date date = new Date(plugin.getBanLength(plugin.getTier(event.getPlayer())) + plugin.playersConfig.getLong(event.getPlayer().getName().toLowerCase() + ".lastbantime"));
+            Date date = new Date(plugin.getBanLength(plugin.getTier(event.getPlayer())) + plugin.players.getLong(event.getPlayer().getName().toLowerCase() + ".lastbantime"));
             final String kickMsg = "Rejoin on: " + dateFormatter.format(date);
             event.setKickMessage(kickMsg); //Workaround for esoteric bug
             event.disallow(Result.KICK_BANNED, kickMsg);
             return;
         }
+        final Player player = event.getPlayer();
 
-        if (!(plugin.playersConfig.contains(event.getPlayer().getName().toLowerCase() + ".lives"))) {
-            plugin.resetLives(event.getPlayer());
+        if (!(plugin.players.contains(player.getName().toLowerCase() + ".lives"))) {
+            plugin.resetLives(player);
             return;
         }
 
-        final Player player = event.getPlayer();
+        
         if (plugin.needsReset(player)) {
             plugin.resetLives(player);
         }

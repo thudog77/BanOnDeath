@@ -30,13 +30,13 @@ public class TakeCommand implements BODCommand {
         final String origPlayerName = args[0];
         final String lowerPlayerName = origPlayerName.toLowerCase();
         final String livesPath = lowerPlayerName + ".lives";
-        final int oldLives = plugin.playersConfig.getInt(livesPath);
+        final int oldLives = plugin.players.getInt(livesPath);
         final int newLives = oldLives - amount;
         if (newLives <= 0) {
             sender.sendMessage("That would leave the player with less than 0 lives.  If you want to ban them, use " + BODCommandDispatcher.getFullSyntax(plugin.getSubCommand("ban")));
             sender.sendMessage("Currently, that player has " + oldLives + (oldLives == 1 ? " life" : " lives") + " remaining.");
         } else {
-            plugin.playersConfig.set(livesPath, newLives);
+            plugin.players.set(livesPath, newLives);
             sender.sendMessage(origPlayerName + " has been taken down from " + oldLives + " to " + amount + (amount == 1 ? " life" : " lives") + ".");
         }
     }

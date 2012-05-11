@@ -23,19 +23,19 @@ public class InfoCommand implements BODCommand {
             return;
         }
         final String targetPlayerName = args[0].toLowerCase();
-        if (!plugin.playersConfig.contains(targetPlayerName)) {
+        if (!plugin.players.contains(targetPlayerName)) {
             sender.sendMessage("Specified player is not currently banned, has never been banned, nor has any lives.");
             return;
         }
         final long bantime = plugin.banTimeoutMillis;
-        if (System.currentTimeMillis() - plugin.playersConfig.getLong(targetPlayerName + ".lastbantime") < bantime) {
+        if (System.currentTimeMillis() - plugin.players.getLong(targetPlayerName + ".lastbantime") < bantime) {
             //long currenttime = System.currentTimeMillis();
-            final long timebanned = plugin.playersConfig.getLong(targetPlayerName.toLowerCase() + ".lastbantime");
+            final long timebanned = plugin.players.getLong(targetPlayerName.toLowerCase() + ".lastbantime");
             Date date = new Date(timebanned + bantime);
             //long timeremaining = (bantime - (currenttime -timebanned))/60000;
             sender.sendMessage(targetPlayerName + " Will be unbanned on:  " + date.toString());
-        } else if (plugin.playersConfig.contains(targetPlayerName + ".lives")) {
-            sender.sendMessage(targetPlayerName + " has " + plugin.playersConfig.getInt(targetPlayerName.toLowerCase() + ".lives") + " lives remaining");
+        } else if (plugin.players.contains(targetPlayerName + ".lives")) {
+            sender.sendMessage(targetPlayerName + " has " + plugin.players.getInt(targetPlayerName.toLowerCase() + ".lives") + " lives remaining");
         } else {
             sender.sendMessage("Specified player is not currently banned, nor has any lives.");
         }

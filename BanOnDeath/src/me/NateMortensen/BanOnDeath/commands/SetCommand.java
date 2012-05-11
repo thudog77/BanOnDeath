@@ -31,7 +31,7 @@ public class SetCommand implements BODCommand {
             sender.sendMessage("That would leave the player without any lives.");
             sender.sendMessage("If you want to ban them, use " + BODCommandDispatcher.getFullSyntax(plugin.getSubCommand("ban")) + " instead.");
         } else {
-            plugin.playersConfig.set(args[0].toLowerCase() + ".lives", amount);
+            plugin.players.set(args[0].toLowerCase() + ".lives", amount);
             sender.sendMessage(args[0] + " now has " + amount + " lives.");
         }
     }

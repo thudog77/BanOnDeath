@@ -29,10 +29,10 @@ public class GiveCommand implements BODCommand {
             return;
         }
         final String livesPath = args[0].toLowerCase() + ".lives";
-        if (!plugin.playersConfig.contains(livesPath)) {
+        if (!plugin.players.contains(livesPath)) {
             sender.sendMessage("That player doesn't seem to exist or is currently banned.");
         } else {
-            plugin.playersConfig.set(livesPath, plugin.playersConfig.getInt(livesPath) + amount);
+            plugin.players.set(livesPath, plugin.players.getInt(livesPath) + amount);
         }
     }
 

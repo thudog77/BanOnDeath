@@ -31,14 +31,14 @@ public class BanOnDeath extends JavaPlugin {
     public File file;
     public boolean logToFile;
 //    boolean changed; //TODO this is not used
-    public FileConfiguration playersConfig = null;
-    public FileConfiguration tiersConfig = null;
+    public FileConfiguration players = null;
+    public FileConfiguration tiers = null;
     private BODCommandDispatcher commandDispatcher;
 
     @Override
     public void onEnable() {
-        playersConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "players.yml"));
-        tiersConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "tiers.yml"));
+        players = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "players.yml"));
+        tiers = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "tiers.yml"));
         config = getConfig();
         final Logger logger = getLogger();
         logger.info("[BanOnDeath]  Thanks for using Ban On Death, created by Evilmidget38");
@@ -51,26 +51,15 @@ public class BanOnDeath extends JavaPlugin {
         //Config variable initialization.
         YAPI.configCheck(config, "Kick Message", "You have failed");
         YAPI.configCheck(config, "WriteToFile", true);
-        YAPI.configCheck(tiersConfig, "default.unit", "minute");
-        YAPI.configCheck(tiersConfig, "default.amount_of_unit", 30);
+        YAPI.configCheck(tiers, "default.unit", "minute");
+        YAPI.configCheck(tiers, "default.amount_of_unit", 30);
         YAPI.configCheck(config, "Run Command Instead", false);
         YAPI.configCheck(config, "Command-To-Run-On-Death", Arrays.asList(ListCommandsDeath));
         YAPI.configCheck(config, "Command-To-Run-On-Live", Arrays.asList(ListCommandsRevive));
         //End ban length
 
         commandDispatcher = new BODCommandDispatcher(this);
-
-        if (tiersConfig.getInt("number_of") < 1) {
-            config.set("number_of", 0);
-            logger.info("[BanOnDeath][WARNING] You did not specify a valid number of tiers, and lives have therefore been disabled.");
-        }
-        for (int i = 1; i < tiersConfig.getInt("number_of"); i++) {
-            //Checking if the tiers are valid.
-            if (!(tiersConfig.contains("tier" + i))) {
-                tiersConfig.set("tier" + i + ".lives", tiersConfig.get("default.lives"));
-                logger.info("[BanOnDeath][WARNING]  You did not specify the tier" + i + " and it has defaulted to " + i + " lives.");
-            }
-        }
+        
         saveConfig();
         if (config.getBoolean("WriteToFile")) {
             file = new File(getDataFolder() + "/banlist.cvs");
@@ -89,8 +78,8 @@ public class BanOnDeath extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        YAPI.saveYaml(this, playersConfig, "Players");
-        YAPI.saveYaml(this, tiersConfig, "tiers");
+        YAPI.saveYaml(this, players, "Players");
+        YAPI.saveYaml(this, tiers, "tiers");
         saveConfig();
     }
 
@@ -98,7 +87,7 @@ public class BanOnDeath extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
         if (cmd.getName().equalsIgnoreCase("lives")) {
             if (sender instanceof Player) {
-                sender.sendMessage("You have " + playersConfig.getInt(sender.getName().toLowerCase() + ".lives") + " lives remaining.");
+                sender.sendMessage("You have " + players.getInt(sender.getName().toLowerCase() + ".lives") + " lives remaining.");
             } else {
                 sender.sendMessage("Last time I checked Consoles can't die, and don't have lives.  Might just be me though.");
                 sender.sendMessage("If you're trying to get info on a player, use /bod info <playername> instead.");
@@ -142,11 +131,11 @@ public class BanOnDeath extends JavaPlugin {
         final String unit;
         final long numberof;
         if (tier == null) {
-            unit = tiersConfig.getString("default.unit");
-            numberof = tiersConfig.getLong("default.amount_of_unit");
+            unit = tiers.getString("default.unit");
+            numberof = tiers.getLong("default.amount_of_unit");
         } else {
-            unit = tiersConfig.getString(tier + ".unit");
-            numberof = tiersConfig.getLong(tier + ".amount_of_unit");
+            unit = tiers.getString(tier + ".unit");
+            numberof = tiers.getLong(tier + ".amount_of_unit");
         }
         if (unit.equals("minute")) {
             return numberof * 60000L;
@@ -169,31 +158,36 @@ public class BanOnDeath extends JavaPlugin {
     }
 
     public String getTier(final Player player) {
-        for (int i = tiersConfig.getInt("number_of"); i > 0; i--) {
-            if (player.hasPermission("bod.tiers.tier" + i)) {
-                return "tier" + i;
+    	String[] thetiers = new String[tiers.getKeys(false).size()];
+		for (int x = 0; x < tiers.getKeys(false).size(); x++){
+			thetiers[x] = tiers.getKeys(false).iterator().next();
+			tiers.getKeys(false).remove(tiers.getKeys(false).iterator().next());
+		}
+        for (int i = 0; i < thetiers.length; i++) {
+            if (player.hasPermission("bod.tiers."+ thetiers[i])) {
+                return thetiers[i];
             }
         }
         return "default";
     }
 
     public void resetLives(final Player player) {
-        final int targetLives = tiersConfig.getInt(getTier(player) + ".lives");
+        final int targetLives = tiers.getInt(getTier(player) + ".lives");
         if (targetLives == 0) {
             return;
         }
         final String playerName = player.getName();
-        playersConfig.set(playerName + ".lives", targetLives);
-        playersConfig.set(playerName + ".lastreset", System.currentTimeMillis());
+        players.set(playerName + ".lives", targetLives);
+        players.set(playerName + ".lastreset", System.currentTimeMillis());
     }
 
 
     private long getPlayerConfigLong(Player player, final String node) {
-        return playersConfig.getLong(player.getName().toLowerCase() + "." + node);
+        return players.getLong(player.getName().toLowerCase() + "." + node);
     }
 
     private boolean hasPlayerConfig(Player player, final String node) {
-        return playersConfig.contains(player.getName().toLowerCase() + "." + node);
+        return players.contains(player.getName().toLowerCase() + "." + node);
     }
 
     public Boolean isBanned(Player player) {
@@ -211,7 +205,7 @@ public class BanOnDeath extends JavaPlugin {
         if (!hasPlayerConfig(player, "lastreset")) {
             return false;
         }
-        if ((System.currentTimeMillis() - getPlayerConfigLong(player, "lastreset") < tiersConfig.getInt(getTier(player) + ".resettime"))) {
+        if ((System.currentTimeMillis() - getPlayerConfigLong(player, "lastreset") < tiers.getInt(getTier(player) + ".resettime"))) {
             return false;
         }
         return true;
