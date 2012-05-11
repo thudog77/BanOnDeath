@@ -1,0 +1,56 @@
+name: BanOnDeath
+main: me.NateMortensen.BanOnDeath.BanOnDeath
+author: Nate Mortensen(evilmidget38)
+authors: [Tory Berra] 
+version: 2.2
+commands:
+   bod:
+      description:  Series of commands related to BanOnDeath.
+      usage: Look it up at dev.bukkit.org/server-mods/bandeath
+   lives:
+      description: Command to look up remaining lives.
+      usage: /lives
+permissions:
+    lives:
+        description: Allows a player to look up their remaining lives.
+        default: true
+    bod.*:
+        description: Gives access to all BanOnDeath commands.
+        default: op
+        children:
+
+            bod.ban: true
+            bod.unbanall: true
+            bod.god: true
+            bod.noban: true
+            bod.info: true
+            bod.give: true
+            bod.take: true
+            bod.set: true
+    bod.unban:
+        description: Allows you to unban a user banned by BoD or otherwise.
+        default: op
+    bod.ban:
+        description: Allows you to ban a player manually for the default duration
+        default: op
+    bod.unbanall:
+        description: Allows you to unban all players who were banned by BoD.
+        default: op
+    bod.god:
+        description: Allows this user to become invincible.
+        default: op
+    bod.noban:
+        description: Prevents the user from being banned on death.
+        default: op
+    bod.info:
+        description: Provides information on a banned user.
+        default: op
+    bod.give:
+        description: Allows you to give lives to a player.
+        default: op
+    bod.take:
+        description: Allows you to take lives from a player.
+        default: op
+    bod.set:
+        description: Allows you to set the number of lives a player has.
+        default: op

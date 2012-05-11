@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -40,8 +41,8 @@ public class BanOnDeath extends JavaPlugin {
         players = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "players.yml"));
         tiers = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "tiers.yml"));
         config = getConfig();
-        final Logger logger = getLogger();
-        logger.info("[BanOnDeath]  Thanks for using Ban On Death, created by Evilmidget38");
+        final Logger log = getLogger();
+        log.info("[BanOnDeath]  Thanks for using Ban On Death, created by Evilmidget38");
         getServer().getPluginManager().registerEvents(listener, this);
         godded = new HashSet<String>();
         String[] ListCommandsDeath = {"give {name} 1 apple", "spawn", "tell console muhahaha"};
@@ -59,7 +60,13 @@ public class BanOnDeath extends JavaPlugin {
         //End ban length
 
         commandDispatcher = new BODCommandDispatcher(this);
+        PluginDescriptionFile pdf = this.getDescription();
+        String name = pdf.getName();
+        String version = pdf.getVersion();
+        List<String> author = pdf.getAuthors();
         
+    
+        log.info(name +" v" + version + " by " + author.get(0) + "and" + author.get(1) + " enabled!");
         saveConfig();
         if (config.getBoolean("WriteToFile")) {
             file = new File(getDataFolder() + "/banlist.cvs");
