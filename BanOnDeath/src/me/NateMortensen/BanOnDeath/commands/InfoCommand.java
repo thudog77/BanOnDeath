@@ -7,6 +7,7 @@ package me.NateMortensen.BanOnDeath.commands;
 import java.util.Date;
 import me.NateMortensen.BanOnDeath.BanOnDeath;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 /**
  * Command to get information on a player. Shows unban date if applicable, or
@@ -22,17 +23,16 @@ public class InfoCommand implements BODCommand {
             sender.sendMessage("You must specify a player to get info on.");
             return;
         }
-        final String targetPlayerName = args[0].toLowerCase();
+        final String targetPlayerName = args[0];
         if (!plugin.players.contains(targetPlayerName)) {
             sender.sendMessage("Specified player is not currently banned, has never been banned, nor has any lives.");
             return;
         }
-        final long bantime = plugin.banTimeoutMillis;
+        Player player = plugin.getServer().getPlayer(targetPlayerName);
+        final long bantime = plugin.getBanLength(plugin.getTier(player));
         if (System.currentTimeMillis() - plugin.players.getLong(targetPlayerName + ".lastbantime") < bantime) {
-            //long currenttime = System.currentTimeMillis();
-            final long timebanned = plugin.players.getLong(targetPlayerName.toLowerCase() + ".lastbantime");
+            final long timebanned = plugin.getLastBanTime(player);
             Date date = new Date(timebanned + bantime);
-            //long timeremaining = (bantime - (currenttime -timebanned))/60000;
             sender.sendMessage(targetPlayerName + " Will be unbanned on:  " + date.toString());
         } else if (plugin.players.contains(targetPlayerName + ".lives")) {
             sender.sendMessage(targetPlayerName + " has " + plugin.players.getInt(targetPlayerName.toLowerCase() + ".lives") + " lives remaining");

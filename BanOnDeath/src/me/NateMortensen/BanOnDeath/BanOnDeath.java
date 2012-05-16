@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,7 +29,7 @@ public class BanOnDeath extends JavaPlugin {
     public FileConfiguration config;
     public Set<String> godded;
     public Boolean isOn;
-    public long banTimeoutMillis; //TODO THIS IS NEVER INITIALIZED!!! IT IS ALWAYS ZERO! FIX!!!
+//    public long banTimeoutMillis; //TODO THIS IS NEVER INITIALIZED!!! IT IS ALWAYS ZERO! FIX!!!
     public File file;
     public boolean logToFile;
 //    boolean changed; //TODO this is not used
@@ -42,11 +43,8 @@ public class BanOnDeath extends JavaPlugin {
         tiers = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "tiers.yml"));
         config = getConfig();
         final Logger log = getLogger();
-        log.info("[BanOnDeath]  Thanks for using Ban On Death, created by Evilmidget38");
         getServer().getPluginManager().registerEvents(listener, this);
         godded = new HashSet<String>();
-        String[] ListCommandsDeath = {"give {name} 1 apple", "spawn", "tell console muhahaha"};
-        String[] ListCommandsRevive = {"give {name} 1 apple", "spawn", "tell console muhahaha"};
 
         //Ban length
         //Config variable initialization.
@@ -54,9 +52,14 @@ public class BanOnDeath extends JavaPlugin {
         YAPI.configCheck(config, "WriteToFile", true);
         YAPI.configCheck(tiers, "default.unit", "minute");
         YAPI.configCheck(tiers, "default.amount_of_unit", 30);
-        YAPI.configCheck(config, "Run Command Instead", false);
-        YAPI.configCheck(config, "Command-To-Run-On-Death", Arrays.asList(ListCommandsDeath));
-        YAPI.configCheck(config, "Command-To-Run-On-Live", Arrays.asList(ListCommandsRevive));
+        YAPI.configCheck(tiers, "default.lives", 1);
+        if (tiers.contains("default")){
+        	tiers.set("default.unit", "minute");
+        	tiers.set("default.amount_of_unit", 30);
+        	tiers.set("default.lives", 1);
+        	tiers.set("default.resettime", 7);
+        	YAPI.saveYaml(this, tiers, "tiers");
+        }
         //End ban length
 
         commandDispatcher = new BODCommandDispatcher(this);
@@ -66,13 +69,13 @@ public class BanOnDeath extends JavaPlugin {
         List<String> author = pdf.getAuthors();
         
     
-        log.info(name +" v" + version + " by " + author.get(0) + "and" + author.get(1) + " enabled!");
+        log.info(name +" v" + version + " by " + author.get(0) + " enabled!");
         saveConfig();
         if (config.getBoolean("WriteToFile")) {
             file = new File(getDataFolder() + "/banlist.cvs");
             if (!file.exists()) {
                 try {
-                    file.createNewFile();
+                    file.createNewFile(); 
                     PrintWriter writer = new PrintWriter(new FileWriter(file.getPath()));
                     writer.println("Username,Date,Unban Date,Cause");
                     writer.close();
@@ -86,7 +89,6 @@ public class BanOnDeath extends JavaPlugin {
     @Override
     public void onDisable() {
         YAPI.saveYaml(this, players, "Players");
-        YAPI.saveYaml(this, tiers, "tiers");
         saveConfig();
     }
 
@@ -105,6 +107,11 @@ public class BanOnDeath extends JavaPlugin {
             }
         }
         return true;
+    }
+    public void clearInventory(final Player player){
+    	PlayerInventory inventory = player.getInventory();
+    	inventory.clear();
+    	inventory.setArmorContents(null);
     }
 
     private void showAvailableCommands(CommandSender sender, Command cmd) {
@@ -133,6 +140,13 @@ public class BanOnDeath extends JavaPlugin {
     public BODCommand getSubCommand(final String str) {
         return commandDispatcher.getCommand(str);
     }
+    public long getLastBanTime(Player player){
+    	return players.getLong(player.getName() + ".lastbantime");
+    }
+    public long getLastBanTime(String player){
+    	return players.getLong(player + ".lastbantime");
+    }
+
 
     public long getBanLength(String tier) {
         final String unit;

@@ -1,8 +1,7 @@
 name: BanOnDeath
 main: me.NateMortensen.BanOnDeath.BanOnDeath
 author: Nate Mortensen(evilmidget38)
-authors: [Tory Berra] 
-version: 2.2
+version: 2.2.1
 commands:
    bod:
       description:  Series of commands related to BanOnDeath.
@@ -18,7 +17,7 @@ permissions:
         description: Gives access to all BanOnDeath commands.
         default: op
         children:
-
+            bod.reset: true
             bod.ban: true
             bod.unbanall: true
             bod.god: true
@@ -28,10 +27,13 @@ permissions:
             bod.take: true
             bod.set: true
     bod.unban:
-        description: Allows you to unban a user banned by BoD or otherwise.
+        description: Allows you to unban a user banned by BoD.
         default: op
     bod.ban:
         description: Allows you to ban a player manually for the default duration
+        default: op
+    bod.reset:
+        description: Resets the lives of a player.
         default: op
     bod.unbanall:
         description: Allows you to unban all players who were banned by BoD.

@@ -6,9 +6,6 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,7 +14,6 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
-import org.bukkit.event.player.PlayerRespawnEvent;
 
 /**
  * ***
@@ -28,7 +24,6 @@ public class BodListener implements Listener {
 
     private static final DateFormat dateFormatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private final BanOnDeath plugin;
-    private final Set<String> playersPendingList = new HashSet<String>();
 
     public BodListener(final BanOnDeath plugin) {
         this.plugin = plugin;
@@ -41,24 +36,21 @@ public class BodListener implements Listener {
             if (player.hasPermission("bod.noban") || player.isOp()) {
                 return;
             }
-            final String playerLivesPath = player.getName().toLowerCase() + ".lives";
-            final int playerLives = plugin.players.getInt(playerLivesPath);
+            final String playerLivesPath = player.getName() + ".lives";
+            int playerLives = plugin.players.getInt(playerLivesPath);
             //Lives check
             if (playerLives > 0) {
-                plugin.players.set(playerLivesPath, playerLives - 1);
+            	playerLives -= 1;
+                plugin.players.set(playerLivesPath, playerLives);
                 player.sendMessage("You have " + playerLives + " lives remaining.");
                 return;
             }
             final long now = System.currentTimeMillis();
             // Player ban code goes below.
-            if (plugin.getConfig().getBoolean("Run Command Instead")) {
-                playersPendingList.add(player.getName());
-                return;
-            } else if (!plugin.getConfig().getBoolean("Run Command Instead")) {
-                plugin.players.set(player.getName().toLowerCase() + ".lastbantime", now);
-                player.getInventory().clear();
-                player.kickPlayer(plugin.config.getString("Kick Message"));
-            }
+            plugin.players.set(player.getName().toLowerCase() + ".lastbantime", now);
+            plugin.clearInventory(player);
+            player.kickPlayer(plugin.config.getString("Kick Message"));
+
             if (plugin.logToFile == false) {
                 final Date nowDate = new Date(now);
                 final Date unbanDate = new Date(now + plugin.getBanLength(plugin.getTier(player)));
@@ -76,26 +68,26 @@ public class BodListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onEntitySpawn(final PlayerRespawnEvent event) {
-        final String playerName = event.getPlayer().getName();
-        if (playersPendingList.contains(playerName)) {
-            playersPendingList.remove(playerName);
-
-            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-
-                public void run() {
-                    for (String e : plugin.getConfig().getStringList("Command-To-Run-On-Death")) {
-                        if (e.contains("{name}")) {
-                            e = e.replaceAll("\\{name\\}", playerName);
-                        }
-                        System.out.println("Now executing " + e);
-                        plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), e);
-                    }
-                }
-            }, 1L);
-        }
-    }
+//    @EventHandler
+//    public void onEntitySpawn(final PlayerRespawnEvent event) {
+//        final String playerName = event.getPlayer().getName();
+//        if (playersPendingList.contains(playerName)) {
+//            playersPendingList.remove(playerName);
+//
+//            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+//
+//                public void run() {
+//                    for (String e : plugin.getConfig().getStringList("Command-To-Run-On-Death")) {
+//                        if (e.contains("{name}")) {
+//                            e = e.replaceAll("\\{name\\}", playerName);
+//                        }
+//                        System.out.println("Now executing " + e);
+//                        plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), e);
+//                    }
+//                }
+//            }, 1L);
+//        }
+//    }
 
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
