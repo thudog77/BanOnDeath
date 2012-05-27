@@ -88,7 +88,7 @@ public class BanOnDeath extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        YAPI.saveYaml(this, players, "Players");
+        YAPI.saveYaml(this, players, "players");
         saveConfig();
     }
 
